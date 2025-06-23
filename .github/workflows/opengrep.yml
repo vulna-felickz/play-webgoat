@@ -1,0 +1,39 @@
+name: Security - Opengrep
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+
+env:
+  # Release version of Opengrep
+  # https://github.com/opengrep/opengrep/releases
+  RELEASE_VERSION: v1.4.1
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+
+      - name: "Download / Install Opengrep"
+        run: |
+          set -e
+          echo "[+] Downloading Opengrep"
+          curl -sSfL \
+            -o "/usr/local/bin/opengrep" \
+            "https://github.com/opengrep/opengrep/releases/download/${RELEASE_VERSION}/opengrep_manylinux_x86"
+          chmod +x /usr/local/bin/opengrep
+          echo "[+] Finished installing opengrep"
+      - name: "Run Opengrep"
+        run: opengrep scan --metrics=on --sarif-output ./results.sarif .
+
+      - name: "Upload SARIF file"
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+        if: always()
