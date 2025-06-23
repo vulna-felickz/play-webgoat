@@ -2,7 +2,10 @@ name: Security - Opengrep
 
 on:
   workflow_call:
-
+  pull_request:
+  push:
+    branches:
+      - 3.0.x # Check branch after merge
 permissions:
   contents: read
   security-events: write
